@@ -21,7 +21,9 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event)  Q_DECL_OVERRIDE;
 
 signals:
+    void incoming(const QImage &image);
 public slots:
+    void draw(const QImage &image);
     void init();
     void initSDK();
     void capture();
@@ -32,6 +34,7 @@ private:
     bool sdktag;
     QPixmap logo;
     QMenu *context_m;
+    QImage cap;
 };
 
 #endif // HKPLAYER_H

@@ -18,10 +18,14 @@ public:
     ~MainWindow();
 protected:
     void mouseReleaseEvent(QMouseEvent *event)  Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event)  Q_DECL_OVERRIDE;
 
 public slots:
     void addDevice();
     void togglePage();
+private slots:
+    void on_player_incoming(const QImage &);
+
 private:
     Ui::MainWindow *ui;
     QMenu *context_m;

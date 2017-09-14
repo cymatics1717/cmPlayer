@@ -29,6 +29,14 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    qDebug()<<event->text();
+    if(event->key() == Qt::Key_Return){
+        addDevice();
+    }
+}
+
 void MainWindow::addDevice()
 {
     deviceConfig dev;
@@ -43,4 +51,9 @@ void MainWindow::togglePage()
     static int cnt = 0;
     cnt++;
     ui->stackedWidget->setCurrentIndex(cnt%2);
+}
+
+void MainWindow::on_player_incoming(const QImage &image)
+{
+    ui->player2->draw(image);
 }

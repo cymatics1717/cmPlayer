@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>969</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -81,6 +81,9 @@
    <extends>QWidget</extends>
    <header>hkplayer.h</header>
    <container>1</container>
+   <slots>
+    <signal>incoming(QImage)</signal>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>

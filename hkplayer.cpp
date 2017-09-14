@@ -109,33 +109,10 @@ static QImage matToQImage( const cv::Mat &inMat )
       // 8-bit, 1 channel
       case CV_8UC1:
       {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
          QImage image( inMat.data,
                        inMat.cols, inMat.rows,
                        static_cast<int>(inMat.step),
                        QImage::Format_Grayscale8 );
-#else
-         static QVector<QRgb>  sColorTable;
-
-         // only create our color table the first time
-         if ( sColorTable.isEmpty() )
-         {
-            sColorTable.resize( 256 );
-
-            for ( int i = 0; i < 256; ++i )
-            {
-               sColorTable[i] = qRgb( i, i, i );
-            }
-         }
-
-         QImage image( inMat.data,
-                       inMat.cols, inMat.rows,
-                       static_cast<int>(inMat.step),
-                       QImage::Format_Indexed8 );
-
-         image.setColorTable( sColorTable );
-#endif
-
          return image;
       }
 
@@ -159,7 +136,8 @@ static void CALLBACK DecCBFun(int nPort,char * pBuf,int nSize,FRAME_INFO * pFram
         cv::cvtColor(src,dst,CV_YUV2BGR_YV12);
 
 //        cv::imwrite(QString("/home/wayne/test%1.jpg").arg(++cnt).toStdString(),dst);
-//        QImage image = matToQImage(dst);
+        QImage image = matToQImage(dst);
+        self->incoming(image);
 //        image.save(QString("/home/wayne/test%1.jpg").arg(++cnt));
     }
         break;
@@ -270,8 +248,8 @@ void HKPlayer::addDevice(const userInfo &user)
     struPlayInfo.lChannel  = channelID;
     struPlayInfo.byPreviewMode = 0;
     struPlayInfo.dwStreamType = 0;
-    struPlayInfo.dwLinkMode =0; //0- TCP 方式,1- UDP 方式,2- 多播方式,3- RTP 方式,4-RTP/RTSP,5-RSTP/HTTP
-    struPlayInfo.bBlocked = 1;  //0- 非阻塞取流,1- 阻塞取流
+    struPlayInfo.dwLinkMode =4; //0- TCP 方式,1- UDP 方式,2- 多播方式,3- RTP 方式,4-RTP/RTSP,5-RSTP/HTTP
+    struPlayInfo.bBlocked = 0;  //0- 非阻塞取流,1- 阻塞取流
     LONG lRealPlayHandle = NET_DVR_RealPlay_V40(lUserID, &struPlayInfo, hkRealDataCallBack, NULL);
 
 //    NET_DVR_CLIENTINFO ClientInfo;
@@ -302,13 +280,23 @@ void HKPlayer::removeDevice()
 void HKPlayer::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.drawPixmap(width()/2-logo.width()/2,height()/2,logo);
+    if(sdktag){
+        painter.drawPixmap(width()/2-logo.width()/2,height()/2,logo);
+    } else {
+        painter.drawImage(width()/2-logo.width()/2,height()/2,cap);
+    }
 }
 
 void HKPlayer::mouseReleaseEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::RightButton){
+    if(event->button() == Qt::RightButton&&sdktag){
         context_m->exec(QCursor::pos());
     }
+}
+
+void HKPlayer::draw(const QImage &image)
+{
+    cap = image;
+    update();
 }
 
