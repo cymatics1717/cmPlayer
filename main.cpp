@@ -10,8 +10,16 @@ int main(int argc, char *argv[])
     qSetMessagePattern(QT_MESSAGE_PATTERN);
 
     QApplication a(argc, argv);
+
+    QFile css(":/res/stylesheet.css");
+    css.open(QFile::ReadOnly);
+    QString StyleSheet = QString(css.readAll());
+    a.setStyleSheet(StyleSheet);
+    css.close();
+
     MainWindow w;
-    w.setFixedSize(a.desktop()->screenGeometry().size()*.7);
+//    int x = a.desktop()->screenGeometry().width()*.6;
+//    w.setFixedSize(x,x*3/4);
     w.move(300,100);
     w.show();
 //    w.showFullScreen();

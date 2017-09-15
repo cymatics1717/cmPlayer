@@ -1,9 +1,7 @@
 #include "deviceconfig.h"
 #include "ui_deviceconfig.h"
 
-deviceConfig::deviceConfig(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::deviceConfig)
+deviceConfig::deviceConfig(QWidget *parent) : QDialog(parent),ui(new Ui::deviceConfig)
 {
     ui->setupUi(this);
     devlist<<"wayne"<<"sdf";

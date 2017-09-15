@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "common.h"
+#include "HCNetSDK.h"
 
 namespace Ui {
 class deviceConfig;
@@ -23,8 +24,11 @@ public:
     QString password() const;
 private:
     Ui::deviceConfig *ui;
+
+    QHash<QString,NET_DVR_DEVICEINFO_V30*> devices;
+
     QStringList devlist;
-    QList<userInfo> devices;
+
 };
 
 #endif // DEVICECONFIG_H

@@ -1,10 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QGraphicsScene>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
 #include "deviceconfig.h"
 #include <QMouseEvent>
+
 namespace Ui {
 class MainWindow;
 }
@@ -18,18 +21,20 @@ public:
     ~MainWindow();
 protected:
     void mouseReleaseEvent(QMouseEvent *event)  Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event)  Q_DECL_OVERRIDE;
-
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 public slots:
     void addDevice();
     void togglePage();
 private slots:
     void on_player_incoming(const QImage &);
 
+    void on_player_incoming2(const QImage &);
+
 private:
     Ui::MainWindow *ui;
     QMenu *context_m;
-
+    QLabel *tip;
+    QGraphicsScene *scene;
 };
 
 #endif // MAINWINDOW_H
