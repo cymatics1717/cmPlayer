@@ -1,3 +1,7 @@
+QWidget#center{
+    background-color:gray;
+/*    background-color:#2E2F30;*/
+}
 QToolButton { /* all types of tool button */
 /*    width: 100px;*/
     height: 40px;

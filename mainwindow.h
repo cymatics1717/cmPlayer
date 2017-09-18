@@ -22,9 +22,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-protected:
-    void mouseReleaseEvent(QMouseEvent *event)  Q_DECL_OVERRIDE;
-    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+    bool eventFilter (QObject *obj, QEvent *event);
+
 public slots:
     void addDevice();
     void togglePage();

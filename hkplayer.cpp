@@ -375,14 +375,9 @@ void HKPlayer::paintEvent(QPaintEvent *event)
     }
 }
 
-void HKPlayer::mousePressEvent(QMouseEvent *event)
-{
-    qDebug() << event->pos();
-}
-
 void HKPlayer::mouseReleaseEvent(QMouseEvent *event)
 {
-    qDebug() << event->pos();
+//    qDebug() << event->pos();
     if(event->button() == Qt::RightButton&&sdktag){
         context_m->exec(QCursor::pos());
     }

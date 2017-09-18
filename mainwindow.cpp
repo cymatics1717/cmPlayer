@@ -22,8 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addPermanentWidget(tip);
     QMetaObject::invokeMethod(ui->player,"init");
     startTimer(0);
-    timerID = startTimer(30);
-//    qDebug()<<centralWidget()->size();
+//    timerID = startTimer(30);
 
     ui->view->setScene(scene);
     ui->view->setBackgroundBrush(QBrush(QColor("#2E2F30")));
@@ -31,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->player->addDevice({"","172.16.1.250",8000,"admin","1234abcd"});
 
     addPixmap(QJsonObject());
+    installEventFilter(this);
 }
 
 MainWindow::~MainWindow()
@@ -38,19 +38,65 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+bool MainWindow::eventFilter(QObject *obj, QEvent *e)
 {
-    if(event->button() == Qt::RightButton){
-        context_m->exec(QCursor::pos());
+//    QSet<QEvent::Type> buff={QEvent::Timer,QEvent::UpdateRequest,QEvent::Paint,QEvent::LayoutRequest,QEvent::HoverMove};
+//    if(!buff.contains(e->type())){
+//        qDebug()<<obj<< "---------"<<e->type();
+//    }
+    if(e->type() == QEvent::KeyPress){
+        QKeyEvent *event = static_cast<QKeyEvent *>(e);
+        if(event){
+//            qDebug() << event->text();
+//            return true;
+            switch (event->key()) {
+            case Qt::Key_Q:
+                qApp->quit();
+                break;
+            case Qt::Key_Return:
+            {
+                static int cnt =0;
+                if(++cnt%2==1){
+                    showFullScreen();
+                } else {
+                    showNormal();
+                }
+            }
+                break;
+            case Qt::Key_Space:
+            {
+               togglePage();
+            }
+             break;
+            default:
+                break;
+            }
+        }
+    } else if(e->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent *event = static_cast<QMouseEvent *>(e);
+        if(event&&event->button()==Qt::RightButton){
+            context_m->exec(QCursor::pos());
+        }
+    } else if(e->type() == QEvent::Timer){
+        QTimerEvent *event = static_cast<QTimerEvent *>(e);
+        if(event->timerId()==timerID){
+            post();
+        } else {
+            tip->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
+        }
+    } else if(e->type() == QEvent::HoverMove){
+        QHoverEvent *event = static_cast<QHoverEvent *>(e);
+        if(event){
+            imageItem *item = static_cast<imageItem *>(ui->view->itemAt(ui->view->mapFrom(this,event->pos())));
+            if(item){
+                item->setToolTip("here,this is pictwerthis is pictwerthis\n"
+                                 " is picttwerthis is pictwerth"
+                                 "icttwerthis is pictwerthis is pictwert");
+            }
+        }
     }
-}
 
-void MainWindow::timerEvent(QTimerEvent *event)
-{
-    tip->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
-    if(event->timerId() == timerID){
-        post();
-    }
+    return QObject::eventFilter(obj,e);
 }
 
 void MainWindow::addDevice()
@@ -109,8 +155,8 @@ void MainWindow::post()
 
 void MainWindow::addPixmap(QJsonObject obj)
 {
-    imageItem *item = new imageItem(QPixmap("./hk2017-09-18_16-45-50_439.jpg"));
-    QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem("hk2017-09-18_16-45-50_439",item);
+    imageItem *item = new imageItem(QPixmap("/home/wayne/puffin.png"));
+    QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem("~/puffin.png",item);
     QFont font;
     font.setPointSize(20);
     text->setFont(font);

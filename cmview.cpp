@@ -11,9 +11,9 @@ void cmView::resizeEvent(QResizeEvent *event)
     QGraphicsView::resizeEvent(event);
 }
 
-void cmView::mousePressEvent(QMouseEvent *event)
-{
-    qDebug() << sceneRect() <<mapToScene(event->pos()) ;
-    qDebug() << scene()->items();
-    QGraphicsView::mousePressEvent(event);
-}
+//void cmView::mousePressEvent(QMouseEvent *event)
+//{
+//    qDebug() << sceneRect() <<mapToScene(event->pos()) ;
+//    qDebug() << scene()->items();
+//    QGraphicsView::mousePressEvent(event);
+//}

@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
     QString QT_MESSAGE_PATTERN=
             "[%{if-debug}D%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}]"
-            ": %{file}:%{line} %{function} - %{message}";
+            ":%{time} %{file}:%{line} %{function} - %{message}";
     qSetMessagePattern(QT_MESSAGE_PATTERN);
 
     QApplication a(argc, argv);
@@ -18,8 +18,6 @@ int main(int argc, char *argv[])
     css.close();
 
     MainWindow w;
-//    int x = a.desktop()->screenGeometry().width()*.6;
-//    w.setFixedSize(x,x*3/4);
     w.move(300,100);
     w.show();
 //    w.showFullScreen();
