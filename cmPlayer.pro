@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -39,17 +39,22 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     hkplayer.cpp \
-    deviceconfig.cpp
+    deviceconfig.cpp \
+    imageitem.cpp \
+    cmview.cpp
 
 HEADERS += \
         mainwindow.h \
     hkplayer.h \
     common.h \
-    deviceconfig.h
+    deviceconfig.h \
+    imageitem.h \
+    cmview.h
 
 FORMS += \
         mainwindow.ui \
-    deviceconfig.ui
+    deviceconfig.ui \
+    hkplayer.ui
 
 RESOURCES += \
     res.qrc

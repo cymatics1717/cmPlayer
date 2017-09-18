@@ -1,9 +1,12 @@
 #include "hkplayer.h"
+#include "ui_hkplayer.h"
+
 #include <QDateTime>
 #include <QDebug>
 #include <QMessageBox>
 #include <QPainter>
 #include <QThread>
+#include <QMutex>
 
 #include "PlayM4.h"
 #include "opencv2/opencv.hpp"
@@ -12,9 +15,10 @@
 
 static HKPlayer *self = NULL;
 
-HKPlayer::HKPlayer(QWidget *parent) :
-    QWidget(parent),device(nullptr),user(nullptr),lUserID(-1),nPort(-1),sdktag(false)
+HKPlayer::HKPlayer(QWidget *parent) :QWidget(parent),ui(new Ui::HKPlayer)
+  ,device(nullptr),user(nullptr),lUserID(-1),sdktag(false)
 {
+    ui->setupUi(this);
 //    setMouseTracking(true);
 }
 
@@ -103,7 +107,7 @@ void HKPlayer::openSound()
 
 void HKPlayer::getTime()
 {
-//    setTime();
+    setTime();
     QString msg ;
     NET_DVR_TIME tm;
     if (NET_DVR_GetDVRConfig(lUserID,NET_DVR_GET_TIMECFG,0xFFFFFFFF,&tm,sizeof(NET_DVR_TIME),LPDWORD(&tm)))
@@ -177,7 +181,9 @@ static QImage matToQImage( const cv::Mat &mat )
 static void updateImage(const cv::Mat &dst){
 //    static int cnt=0;
 //    cv::imwrite(QString("/home/wayne/test%1.jpg").arg(++cnt).toStdString(),dst);
-    QMutexLocker(&self->mutex);
+    static QMutex mtex;
+    QMutexLocker locker(&mtex);
+
     cv::Mat edges;
     cv::cvtColor(dst, edges, CV_BGR2GRAY);
     cv::adaptiveThreshold(edges, edges,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,5,6);
@@ -218,29 +224,31 @@ static void CALLBACK hkRealDataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *
         qDebug("Demmo lRealHandle[%d]: Get StreamData! Type[%d], BufSize[%d], pBuffer:%p\n", lRealHandle, dwDataType, dwBufSize, pBuffer);
     }
 
+    static LONG nPort;
+
     DWORD dRet;
     switch (dwDataType)
     {
     case NET_DVR_SYSHEAD:
-        if (!PlayM4_GetPort(&self->nPort))
+        if (!PlayM4_GetPort(&nPort))
         {
             break;
         }
         if(dwBufSize > 0)
         {
-            if (!PlayM4_SetStreamOpenMode(self->nPort, STREAME_REALTIME))
+            if (!PlayM4_SetStreamOpenMode(nPort, STREAME_REALTIME))
             {
                 break;
             }
-            if (!PlayM4_OpenStream(self->nPort,pBuffer,dwBufSize,1024*1024))
+            if (!PlayM4_OpenStream(nPort,pBuffer,dwBufSize,1024*1024))
             {
-                dRet=PlayM4_GetLastError(self->nPort);
+                dRet=PlayM4_GetLastError(nPort);
                 break;
             }
             //设置解码回调函数 只解码不显示
-            if (!PlayM4_SetDecCallBack(self->nPort,DecCBFun))
+            if (!PlayM4_SetDecCallBack(nPort,DecCBFun))
             {
-              dRet=PlayM4_GetLastError(self->nPort);
+              dRet=PlayM4_GetLastError(nPort);
               break;
             }
 
@@ -250,32 +258,32 @@ static void CALLBACK hkRealDataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *
 //                dRet=PlayM4_GetLastError(nPort);
 //                break;
 //            }
-            if (!PlayM4_SetDisplayBuf(self->nPort, 5))
+            if (!PlayM4_SetDisplayBuf(nPort, 5))
             {
                 break;
             }
 //            if (!PlayM4_Play(nPort,self->alien->winId()))
-            if (!PlayM4_Play(self->nPort,NULL))
+            if (!PlayM4_Play(nPort,NULL))
             {
-                dRet=PlayM4_GetLastError(self->nPort);
+                dRet=PlayM4_GetLastError(nPort);
                 break;
             }
-            if (!PlayM4_PlaySound(self->nPort))
+            if (!PlayM4_PlaySound(nPort))
             {
-                dRet=PlayM4_GetLastError(self->nPort);
+                dRet=PlayM4_GetLastError(nPort);
                 break;
             }
         }
         break;
 
     case NET_DVR_STREAMDATA:
-        if (dwBufSize > 0 && self->nPort != -1)
+        if (dwBufSize > 0 && nPort != -1)
         {
-            BOOL inData = PlayM4_InputData(self->nPort,pBuffer,dwBufSize);
+            BOOL inData = PlayM4_InputData(nPort,pBuffer,dwBufSize);
             while (!inData)
             {
 //                Sleep(10);
-                inData=PlayM4_InputData(self->nPort,pBuffer,dwBufSize);
+                inData=PlayM4_InputData(nPort,pBuffer,dwBufSize);
                 qDebug("PlayM4_InputData failed");
             }
         }
@@ -356,8 +364,7 @@ void HKPlayer::logout()
 
 void HKPlayer::paintEvent(QPaintEvent *event)
 {
-    qDebug()<< QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-
+//    qDebug()<< QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     QPainter painter(this);
     if(sdktag){
         if(!logo.isNull())
@@ -365,7 +372,6 @@ void HKPlayer::paintEvent(QPaintEvent *event)
     } else {
         if(!cap.isNull())
             painter.drawImage(width()/2-cap.width()/2,height()/2-cap.height()/2,cap);
-//        painter.drawImage(0,0,cap.scaled(width(),height()));
     }
 }
 
@@ -387,4 +393,3 @@ void HKPlayer::draw(const QImage &image)
     cap = image;
     update();
 }
-

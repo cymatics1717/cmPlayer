@@ -4,10 +4,13 @@
 #include <QMenu>
 #include <QWidget>
 #include <QMouseEvent>
-#include <QMutex>
 
 #include "HCNetSDK.h"
 #include "common.h"
+namespace Ui {
+class HKPlayer;
+}
+
 class HKPlayer : public QWidget
 {
     Q_OBJECT
@@ -17,8 +20,7 @@ public:
     void addDevice(const userInfo &user);
     void logout();
 
-    QMutex mutex;
-    LONG nPort;
+    QImage cap;
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -27,7 +29,6 @@ protected:
 
 signals:
     void incoming(const QImage &image);
-    void incoming2(const QImage &image);
 public slots:
     void draw(const QImage &image);
     void init();
@@ -39,6 +40,8 @@ public slots:
     void openSound();
 
 private:
+    Ui::HKPlayer *ui;
+
     NET_DVR_USER_LOGIN_INFO *user;
     NET_DVR_DEVICEINFO_V40 *device;
     LONG lUserID;
@@ -46,7 +49,6 @@ private:
     bool sdktag;
     QPixmap logo;
     QMenu *context_m;
-    QImage cap;
 };
 
 #endif // HKPLAYER_H

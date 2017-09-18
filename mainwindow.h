@@ -2,11 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QGraphicsScene>
+#include <QJsonObject>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
 #include "deviceconfig.h"
 #include <QMouseEvent>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 namespace Ui {
 class MainWindow;
@@ -25,16 +28,21 @@ protected:
 public slots:
     void addDevice();
     void togglePage();
-private slots:
-    void on_player_incoming(const QImage &);
 
-    void on_player_incoming2(const QImage &);
+    void post();
+    void addPixmap(QJsonObject obj);
+    void onFinished(QNetworkReply*);
+    void onError(QNetworkReply::NetworkError);
+private slots:
 
 private:
     Ui::MainWindow *ui;
     QMenu *context_m;
     QLabel *tip;
     QGraphicsScene *scene;
+
+    int timerID;
+    QNetworkAccessManager manager;
 };
 
 #endif // MAINWINDOW_H
