@@ -7,6 +7,11 @@
 
 #include "HCNetSDK.h"
 #include "common.h"
+
+#include "opencv2/opencv.hpp"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
+
 namespace Ui {
 class HKPlayer;
 }
@@ -25,12 +30,12 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event)  Q_DECL_OVERRIDE;
-
+    void timerEvent(QTimerEvent *event)  Q_DECL_OVERRIDE;
 signals:
     void incoming(const QImage &image);
 public slots:
     void draw(const QImage &image);
-    void init();
+    void initLocalMedia(QString name="");
     void initSDK();
     void play();
     void capture();
@@ -48,6 +53,9 @@ private:
     bool sdktag;
     QPixmap logo;
     QMenu *context_m;
+
+    cv::VideoCapture cvcap;
+
 };
 
 #endif // HKPLAYER_H

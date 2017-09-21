@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     statusBar()->addPermanentWidget(tip);
     startTimer(0);
-    timerID = startTimer(30);
+    timer4ai = startTimer(5000);
 
     ui->view->setScene(scene);
     ui->view->setBackgroundBrush(QBrush(QColor("#2E2F30")));
@@ -30,8 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     installEventFilter(this);
 
 //    FaceSetList();
-    faceset_id="j5BLlJ348wh2g61O83TM1dg7834mQ4E7";
+    faceset_id="NjbXo18562hzAKLLE4jotIkxOdF9Fk80";
 //    FaceSetRemove();
+    FaceAdd();
     DetectCarPlate();
     FaceList();
 
@@ -45,15 +46,11 @@ MainWindow::~MainWindow()
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *e)
 {
-    //    QSet<QEvent::Type> buff={QEvent::Timer,QEvent::UpdateRequest,QEvent::Paint,QEvent::LayoutRequest,QEvent::HoverMove};
-    //    if(!buff.contains(e->type())){
-    //        qDebug()<<obj<< "---------"<<e->type();
-    //    }
     if(e->type() == QEvent::KeyPress){
         QKeyEvent *event = static_cast<QKeyEvent *>(e);
         if(event){
-            //            qDebug() << event->text();
-            //            return true;
+//            qDebug() << event->text();
+//            return true;
             switch (event->key()) {
             case Qt::Key_Q:
                 qApp->quit();
@@ -84,8 +81,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *e)
         }
     } else if(e->type() == QEvent::Timer){
         QTimerEvent *event = static_cast<QTimerEvent *>(e);
-        if(event->timerId()==timerID){
-
+        if(event->timerId()==timer4ai){
+            FaceAdd();
+            FaceRecog();
         } else {
             tip->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
         }
@@ -234,9 +232,11 @@ void MainWindow::FaceRecog()
     QByteArray arr;
     QBuffer buffer(&arr);
     buffer.open(QIODevice::WriteOnly);
-    QImage img("/home/wayne/1231.jpg");
-    img.save(&buffer, "JPEG");
-//    ui->player->cap.save(&buffer, "JPEG");
+//    QImage img("/home/wayne/1231.jpg");
+//    img.save(&buffer, "JPEG");
+//    qDebug() << img.size();
+    qDebug() << ui->player->cap.size();
+    ui->player->cap.save(&buffer, "JPEG");
 
     QHttpPart imagePart;
     QString other = QString("filename=\"FromQt%1.jpg\";").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
@@ -391,8 +391,8 @@ void MainWindow::get(const QUrl &u)
 void MainWindow::post(const QUrl &u, const QList<QHttpPart> &parts)
 {
     QUrlQuery param;
-    param.addQueryItem("app_key",app_key);
-    param.addQueryItem("app_secret",app_secret);
+//    param.addQueryItem("app_key",app_key);
+//    param.addQueryItem("app_secret",app_secret);
 
     QUrl uu = u;
     uu.setQuery(param);
@@ -478,12 +478,25 @@ void MainWindow::init()
     connect(tcp,SIGNAL(stateChanged(QAbstractSocket::SocketState))
             ,SLOT(onStateChanged(QAbstractSocket::SocketState)));
     tcp->connectToHost(WEBCAM_HOST,WEBCAM_PORT);
+
+    if (tcp->waitForConnected(500)){
+        tcp->disconnectFromHost();
+        statusBar()->showMessage("webcam is online...");
+        QMetaObject::invokeMethod(ui->player,"initSDK");
+        ui->player->addDevice({"",WEBCAM_HOST,WEBCAM_PORT,WEBCAM_USER,WEBCAM_CODE});
+    } else {
+        statusBar()->showMessage("webcam is offline,choose local media...");
+        QMetaObject::invokeMethod(ui->player,"initLocalMedia");
+//        ui->player->initLocalMedia("/home/wayne/Downloads/highwayKR.avi");
+    }
 }
 
 void MainWindow::onConnected()
 {
+    QTcpSocket *tcp = static_cast<QTcpSocket *>(sender());
+    tcp->disconnectFromHost();
     statusBar()->showMessage("webcam is online...");
-    QMetaObject::invokeMethod(ui->player,"init");
+    QMetaObject::invokeMethod(ui->player,"initSDK");
     ui->player->addDevice({"",WEBCAM_HOST,WEBCAM_PORT,WEBCAM_USER,WEBCAM_CODE});
 }
 

@@ -11,14 +11,14 @@ typedef struct _userInfo
     QString password;
 } userInfo;
 
-#define WEBCAM_HOST "192.168.1.1"
-#define WEBCAM_PORT 9999
-#define WEBCAM_USER "root"
-#define WEBCAM_CODE "xxxxxxxx"
+#define WEBCAM_HOST "192.168.0.2"
+#define WEBCAM_PORT 80
+#define WEBCAM_USER "admin"
+#define WEBCAM_CODE "1234abcd"
 
-#define app_key "M40GhBvM06XR0S8mnmr761u4j82m2030Ig5"
-#define app_secret "sJe3YecdSOenmmmw292P7muPrkt3079e8pM"
-#define CM_HOST "0.0.0.0:9988"
+#define app_key " "
+#define app_secret " "
+#define CM_HOST ""
 
 #define CM_FACESET_REGISTER "/api/v1/faceset/register"
 #define CM_FACESET_REMOVE "/api/v1/faceset/remove"

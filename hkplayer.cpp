@@ -9,16 +9,17 @@
 #include <QMutex>
 
 #include "PlayM4.h"
-#include "opencv2/opencv.hpp"
-#include "opencv/cv.h"
-#include "opencv/highgui.h"
 
 static HKPlayer *self = NULL;
 
 HKPlayer::HKPlayer(QWidget *parent) :QWidget(parent),ui(new Ui::HKPlayer)
-  ,device(nullptr),user(nullptr),lUserID(-1),sdktag(false)
+  ,device(nullptr),user(nullptr),lUserID(-1),sdktag(false),context_m(new QMenu(this))
 {
     ui->setupUi(this);
+
+    setContextMenuPolicy(Qt::ActionsContextMenu);
+    logo.load(":/images/login-logo.png");
+
 //    setMouseTracking(true);
 }
 
@@ -38,20 +39,23 @@ HKPlayer::~HKPlayer()
     delete user;
 }
 
-void HKPlayer::init()
+void HKPlayer::initLocalMedia(QString name)
 {
-    logo.load(":/images/login-logo.png");
-    setContextMenuPolicy(Qt::ActionsContextMenu);
-    context_m = new QMenu(this);
-    context_m->addAction("&capture a shot",this,SLOT(capture()));
-    context_m->addAction("&get camera local time",this,SLOT(getTime()));
-    self = this;
-
-    initSDK();
+    if(cvcap.isOpened()) cvcap.release();
+    if(name.isEmpty()){
+        cvcap.open(0);
+    } else {
+        cvcap.open(name.toStdString());
+    }
+    startTimer(20);
 }
 
 void HKPlayer::initSDK()
 {
+    context_m->addAction("&capture a shot",this,SLOT(capture()));
+    context_m->addAction("&get camera local time",this,SLOT(getTime()));
+    self = this;
+
     qDebug()<< "step to init HK SDK";
     sdktag = NET_DVR_Init();
     if(sdktag){
@@ -364,7 +368,7 @@ void HKPlayer::logout()
 
 void HKPlayer::paintEvent(QPaintEvent *event)
 {
-//    qDebug()<< QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+//    qDebug()<<sdktag<< QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     QPainter painter(this);
     if(sdktag){
         if(!logo.isNull())
@@ -380,6 +384,16 @@ void HKPlayer::mouseReleaseEvent(QMouseEvent *event)
 //    qDebug() << event->pos();
     if(event->button() == Qt::RightButton&&sdktag){
         context_m->exec(QCursor::pos());
+    }
+}
+
+void HKPlayer::timerEvent(QTimerEvent *event)
+{
+    if(cvcap.isOpened()){
+        cv::Mat frame;
+        cvcap.read(frame);
+        cap = matToQImage(frame);
+        incoming(cap);
     }
 }
 

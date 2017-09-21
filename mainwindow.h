@@ -67,7 +67,7 @@ private:
     QLabel *tip;
     QGraphicsScene *scene;
 
-    int timerID;
+    int timer4ai;
     QNetworkAccessManager manager;
     QHash<QUrl,std::function<void (const QJsonObject &obj)>> dump;
     QString faceset_id;
