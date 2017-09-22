@@ -4,6 +4,9 @@
 #include <QMenu>
 #include <QWidget>
 #include <QMouseEvent>
+#include <QJsonObject>
+#include <QTimer>
+#include <QJsonArray>
 
 #include "HCNetSDK.h"
 #include "common.h"
@@ -42,7 +45,11 @@ public slots:
     void getTime();
     void setTime();
     void openSound();
+    void hideFace();
+    void hidePlate();
 
+    void crop(const QJsonObject &obj, int inteval);
+    void ShowCarPlate(const QJsonObject &obj);
 private:
     Ui::HKPlayer *ui;
 
@@ -56,6 +63,8 @@ private:
 
     cv::VideoCapture cvcap;
 
+    QJsonArray faces;
+    QString plate;
 };
 
 #endif // HKPLAYER_H

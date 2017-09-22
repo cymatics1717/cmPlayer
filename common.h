@@ -16,8 +16,8 @@ typedef struct _userInfo
 #define WEBCAM_USER "admin"
 #define WEBCAM_CODE "1234abcd"
 
-#define app_key " "
-#define app_secret " "
+#define app_key ""
+#define app_secret ""
 #define CM_HOST ""
 
 #define CM_FACESET_REGISTER "/api/v1/faceset/register"

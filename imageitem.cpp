@@ -7,7 +7,7 @@ imageItem::imageItem(const QPixmap &pixmap, QGraphicsItem *p) :
 {
 //    setFlag(QGraphicsItem::ItemIsSelectable);
 //    setFlag(QGraphicsItem::ItemIsMovable);
-//    setFlag(QGraphicsItem::ItemIgnoresTransformations);
+    setFlag(QGraphicsItem::ItemIgnoresTransformations);
     setCacheMode(DeviceCoordinateCache);
     setAcceptHoverEvents(true);
 }
@@ -15,5 +15,5 @@ imageItem::imageItem(const QPixmap &pixmap, QGraphicsItem *p) :
 void imageItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QGraphicsPixmapItem::paint(painter,option,widget);
-    painter->drawText(100,100,"hello");
+//    painter->drawText(100,100,"hello");
 }

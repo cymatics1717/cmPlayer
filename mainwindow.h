@@ -34,6 +34,7 @@ public slots:
     void post(const QUrl &u, const QList<QHttpPart> &parts = QList<QHttpPart>());
     void addPixmap(QJsonObject obj);
     void onFinished();
+    void fadingAway();
     void onError(QNetworkReply::NetworkError);
 
 private slots:

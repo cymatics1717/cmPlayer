@@ -109,6 +109,32 @@ void HKPlayer::openSound()
     }
 }
 
+void HKPlayer::crop(const QJsonObject &obj,int inteval)
+{
+   if(obj.contains("faces")){
+       faces = obj["faces"].toArray();
+       QTimer::singleShot(500,this,SLOT(hideFace()));
+       update();
+   }
+}
+
+void HKPlayer::ShowCarPlate(const QJsonObject &obj)
+{
+    plate = QString("Car Plate[%1]:  %2").arg(obj.value("code").toInt()).arg(obj.value("plate").toString());
+    QTimer::singleShot(500,this,SLOT(hidePlate()));
+    update();
+}
+
+void HKPlayer::hideFace()
+{
+    faces = QJsonArray();
+}
+
+void HKPlayer::hidePlate()
+{
+    plate.clear();
+}
+
 void HKPlayer::getTime()
 {
     setTime();
@@ -370,12 +396,35 @@ void HKPlayer::paintEvent(QPaintEvent *event)
 {
 //    qDebug()<<sdktag<< QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     QPainter painter(this);
-    if(sdktag){
-        if(!logo.isNull())
-            painter.drawPixmap(width()/2-logo.width()/2,height()/2,logo);
-    } else {
+    if(!logo.isNull())
+        painter.drawPixmap(width()/2-logo.width()/2,height()/2,logo);
+    if(!sdktag){
         if(!cap.isNull())
             painter.drawImage(width()/2-cap.width()/2,height()/2-cap.height()/2,cap);
+    }
+
+    /*{"code":0,"faces":[
+     * {"name":"Test%20from%20Qt%3A2017-09-21%20183101.366",
+     * "rect":{"height":272,"width":272,"x":195,"y":194},
+     * "similarity":0.9459802508354187}
+     *
+     * ],"msg":"ok"}*/
+
+    painter.setBrush(QBrush(QColor("#22FF00FF")));
+    painter.setPen(QPen(QColor("#FF00FF"),5));
+    for(auto face:faces){
+        int h = face.toObject().value("rect").toObject().value("height").toInt();
+        int w = face.toObject().value("rect").toObject().value("width").toInt();
+        int x = face.toObject().value("rect").toObject().value("x").toInt();
+        int y = face.toObject().value("rect").toObject().value("y").toInt();
+        QString name = QUrl::fromPercentEncoding(face.toObject().value("name").toString().toUtf8());
+        double similarity = face.toObject().value("similarity").toDouble();
+        painter.drawRoundedRect(x,y,w,h,20,20);
+        painter.drawText(x,y,w,h,Qt::AlignCenter|Qt::TextWordWrap,QString("name:%1").arg(name));
+        painter.drawText(x,y,w,h,Qt::AlignBottom|Qt::AlignHCenter,QString("similarity:%1").arg(QString::number(similarity)));
+    }
+    if(!plate.isEmpty()){
+        painter.drawText(0,50,plate);
     }
 }
 

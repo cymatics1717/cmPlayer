@@ -8,7 +8,7 @@
 
 #include "common.h"
 #define M 300
-
+#define INTEVAL 500
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),ui(new Ui::MainWindow),scene(new QGraphicsScene(this))
   ,tip(new QLabel(this)),context_m(new QMenu(this))
@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     statusBar()->addPermanentWidget(tip);
     startTimer(0);
-    timer4ai = startTimer(5000);
+    timer4ai = startTimer(INTEVAL);
 
     ui->view->setScene(scene);
     ui->view->setBackgroundBrush(QBrush(QColor("#2E2F30")));
@@ -32,8 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //    FaceSetList();
     faceset_id="NjbXo18562hzAKLLE4jotIkxOdF9Fk80";
 //    FaceSetRemove();
-    FaceAdd();
-    DetectCarPlate();
     FaceList();
 
     QTimer::singleShot(100,this,SLOT(init()));
@@ -82,8 +80,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *e)
     } else if(e->type() == QEvent::Timer){
         QTimerEvent *event = static_cast<QTimerEvent *>(e);
         if(event->timerId()==timer4ai){
-            FaceAdd();
+//            FaceAdd();
             FaceRecog();
+            DetectCarPlate();
         } else {
             tip->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
         }
@@ -189,7 +188,7 @@ void MainWindow::FaceAdd()
     {
         QHttpPart textPart;
         textPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"name\""));
-        textPart.setBody(QUrl::toPercentEncoding(QString("Test from Qt:%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HHmmss.zzz"))));
+        textPart.setBody(QUrl::toPercentEncoding(QString("fromQt:%1").arg(QDateTime::currentDateTime().toString("HHmmss.zzz"))));
         lst.append(textPart);
     }
     ///////////////////////////////////////////////
@@ -239,7 +238,7 @@ void MainWindow::FaceRecog()
     ui->player->cap.save(&buffer, "JPEG");
 
     QHttpPart imagePart;
-    QString other = QString("filename=\"FromQt%1.jpg\";").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
+    QString other = QString("filename=\"FromQt%1.jpg\";").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"));
     QString fakeit =QString("form-data;%1name=\"imagefile\"").arg(other);
     imagePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/jpeg"));
     imagePart.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant(fakeit.toStdString().c_str()));
@@ -253,8 +252,16 @@ void MainWindow::FaceRecog()
 }
 
 void MainWindow::onFaceRecogReply(const QJsonObject &obj)
-{
+{      
     qDebug() << obj;
+    if(obj.contains("code") && obj.contains("faces")){
+        ui->player2->crop(obj,INTEVAL);
+        for(auto face:obj.value("faces").toArray()){
+            addPixmap(face.toObject());
+        }
+    } else {
+        qDebug() << "undefined json msg";
+    }
 }
 
 void MainWindow::Facesetname()
@@ -349,8 +356,7 @@ void MainWindow::DetectCarPlate()
     QByteArray arr;
     QBuffer buffer(&arr);
     buffer.open(QIODevice::WriteOnly);
-    QImage img("/home/wayne/123.jpg");
-    img.save(&buffer, "JPEG");
+    ui->player2->cap.save(&buffer, "JPEG");
 
     QHttpPart imagePart;
     QString other = QString("filename=\"FromQt%1.jpg\";").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
@@ -370,6 +376,13 @@ void MainWindow::DetectCarPlate()
 void MainWindow::onDetectCarPlateReply(const QJsonObject &obj)
 {
     qDebug() << obj;
+    if(obj.contains("code")){
+        ui->player2->ShowCarPlate(obj);
+        statusBar()->showMessage(QString("Detecting Car Plate[%1] code:%2")
+                                 .arg(obj.value("code").toInt())
+                                 .arg(obj.value("plate").toString()));
+
+    }
 }
 
 void MainWindow::get(const QUrl &u)
@@ -421,10 +434,25 @@ void MainWindow::post(const QUrl &u, const QList<QHttpPart> &parts)
     qDebug() <<multiPart<< req.url();
 }
 
-void MainWindow::addPixmap(QJsonObject obj)
+void MainWindow::addPixmap(QJsonObject face)
 {
-    imageItem *item = new imageItem(QPixmap("/home/wayne/puffin.png"));
-    QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem("~/puffin.png",item);
+    /*     * {"name":"Test%20from%20Qt%3A2017-09-21%20183101.366",
+     * "rect":{"height":272,"width":272,"x":195,"y":194},
+     * "similarity":0.9459802508354187}*/
+
+    int h = face.value("rect").toObject().value("height").toInt();
+    int w = face.value("rect").toObject().value("width").toInt();
+    int x = face.value("rect").toObject().value("x").toInt();
+    int y = face.value("rect").toObject().value("y").toInt();
+    QString name = QUrl::fromPercentEncoding(face.value("name").toString().toUtf8());
+    double similarity = face.value("similarity").toDouble();
+//    qDebug() << x <<y <<h <<w << name << similarity;
+
+    statusBar()->showMessage(QString("people name:%1 Rect:[(%2,%3),[%4,%5]] similarity:%6")
+              .arg(name).arg(x).arg(y).arg(w).arg(h).arg(similarity));
+
+    imageItem *item = new imageItem(QPixmap::fromImage(ui->player2->cap));
+    QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(name,item);
     QFont font;
     font.setPointSize(20);
     text->setFont(font);
@@ -433,7 +461,7 @@ void MainWindow::addPixmap(QJsonObject obj)
     scene->addItem(item);
     //    scene->addItem(buttonParent);
     QPropertyAnimation *ani = new QPropertyAnimation(item,"pos");
-    //    connect(ani,SIGNAL(finished()),this,SLOT(fadingAway()));
+    connect(ani,SIGNAL(finished()),this,SLOT(fadingAway()));
     qDebug() << scene->sceneRect()   ;
     int m = M;
     double r =2.3 ;
@@ -443,6 +471,19 @@ void MainWindow::addPixmap(QJsonObject obj)
     ani->setEasingCurve(QEasingCurve::OutBounce);
     ani->start(QAbstractAnimation::DeleteWhenStopped);
     ui->view->ensureVisible(item);
+}
+
+void MainWindow::fadingAway()
+{
+  QPropertyAnimation* ani= qobject_cast<QPropertyAnimation*>(sender());
+  imageItem *itm = qobject_cast<imageItem*>(ani->targetObject());
+
+  QPropertyAnimation *fadeout = new QPropertyAnimation(itm,"pos");
+  connect(fadeout,SIGNAL(finished()),itm,SLOT(deleteLater()));
+  fadeout->setDuration(100);
+  fadeout->setStartValue(itm->pos());
+  fadeout->setEndValue(itm->pos()+QPoint(M,0));
+  fadeout->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void MainWindow::onFinished()
